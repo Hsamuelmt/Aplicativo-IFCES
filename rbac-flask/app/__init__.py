@@ -1,8 +1,14 @@
 import click
 import json
+from pathlib import Path
+
+from dotenv import load_dotenv
 from flask import Flask, render_template
 from .extensions import db, login_manager
 from .models import User
+
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 def create_app(config_object="config.Config"):

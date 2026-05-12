@@ -7,8 +7,12 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
     # --- Database Configuration ---
-    # Prioritizes environment variables, but defaults to a local XAMPP setup.
-    # Falls back to SQLite if DB_NAME or DB_USER are not set.
+    # Prioritizes DATABASE_URL for production deployments like Render.
+    # Falls back to a local MySQL setup and finally SQLite for development.
+
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     
     DB_NAME = os.getenv("DB_NAME", "aplicativo_ifces")
     DB_USER = os.getenv("DB_USER", "root")
@@ -27,7 +31,7 @@ class Config:
     sqlite_url = f"sqlite:///{SQLITE_PATH.as_posix()}"
 
     # Set the final database URI
-    SQLALCHEMY_DATABASE_URI = mysql_url or sqlite_url
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or mysql_url or sqlite_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class TestConfig(Config):

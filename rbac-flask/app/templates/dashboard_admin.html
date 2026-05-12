@@ -1,59 +1,968 @@
 {% extends 'layout.html' %}
-{% block title %}Panel Administrador{% endblock %}
+{% block title %}Panel Administrador - IFCES{% endblock %}
 {% block content %}
-<div class="dashboard-header">
-  <h2>⚙️ Panel de Administrador</h2>
-  <p class="welcome">Bienvenido/a, <strong>{{ current_user.username }}</strong></p>
+{% set total_users = usuarios|length %}
+{% set students = usuarios|selectattr('role', 'equalto', 'estudiante')|list|length %}
+{% set teachers = usuarios|selectattr('role', 'equalto', 'profesor')|list|length %}
+{% set admins = usuarios|selectattr('role', 'equalto', 'admin')|list|length %}
+{% set active_users = usuarios|selectattr('is_active', 'equalto', true)|list|length %}
+{% set ordered_users = usuarios|sort(attribute='created_at', reverse=true) %}
+{% set recent_users = ordered_users[:8] %}
+{% set student_pct = (students * 100 / total_users) if total_users else 0 %}
+{% set teacher_pct = (teachers * 100 / total_users) if total_users else 0 %}
+{% set admin_pct = (admins * 100 / total_users) if total_users else 0 %}
+
+<style>
+  :root {
+    --admin-bg: #f5f7fb;
+    --admin-surface: #ffffff;
+    --admin-surface-2: #f8fafc;
+    --admin-border: #dbe4f0;
+    --admin-text: #0f172a;
+    --admin-muted: #64748b;
+    --admin-primary: #116dff;
+    --admin-primary-dark: #0b4fc4;
+    --admin-success: #10b981;
+    --admin-warning: #f59e0b;
+    --admin-danger: #ef4444;
+    --admin-radius: 20px;
+    --admin-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .admin-shell {
+    position: relative;
+    overflow: hidden;
+    padding: 28px;
+    background:
+      radial-gradient(circle at top left, rgba(17, 109, 255, 0.10), transparent 30%),
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.10), transparent 24%),
+      var(--admin-bg);
+    min-height: calc(100vh - 96px);
+  }
+
+  .admin-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-size: 56px 56px;
+    pointer-events: none;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent 88%);
+  }
+
+  .admin-content {
+    position: relative;
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .hero-panel,
+  .card-panel,
+  .quick-panel {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow);
+  }
+
+  .hero-panel {
+    padding: 28px;
+    display: grid;
+    gap: 22px;
+    margin-bottom: 24px;
+    background:
+      linear-gradient(135deg, rgba(17, 109, 255, 0.95), rgba(17, 109, 255, 0.72)),
+      linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: start;
+    flex-wrap: wrap;
+  }
+
+  .hero-copy {
+    max-width: 760px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .hero-title {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .hero-subtitle {
+    margin: 12px 0 0;
+    font-size: 15px;
+    max-width: 62ch;
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .glass-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(12px);
+    font-weight: 600;
+  }
+
+  .hero-actions a,
+  .hero-actions button,
+  .quick-link {
+    text-decoration: none;
+  }
+
+  .btn-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    border-radius: 14px;
+    padding: 13px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .btn-admin:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-admin.primary {
+    color: white;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 12px 24px rgba(22, 163, 74, 0.22);
+  }
+
+  .btn-admin.secondary {
+    color: white;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .metric-card {
+    position: relative;
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid var(--admin-border);
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    right: -18px;
+    top: -18px;
+    width: 96px;
+    height: 96px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(17,109,255,0.12), transparent 68%);
+  }
+
+  .metric-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .metric-label {
+    margin: 0;
+    color: var(--admin-muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .metric-value {
+    margin: 10px 0 8px;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    font-weight: 800;
+    color: var(--admin-text);
+  }
+
+  .metric-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .metric-trend.up { color: var(--admin-success); }
+  .metric-trend.neutral { color: var(--admin-muted); }
+
+  .metric-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex: 0 0 auto;
+  }
+
+  .metric-icon.primary { background: linear-gradient(135deg, #116dff, #0b4fc4); }
+  .metric-icon.success { background: linear-gradient(135deg, #10b981, #059669); }
+  .metric-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .metric-icon.dark { background: linear-gradient(135deg, #0f172a, #334155); }
+
+  .quick-panel {
+    padding: 22px;
+    margin-bottom: 24px;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .section-head h2 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--admin-text);
+    letter-spacing: -0.02em;
+  }
+
+  .section-head p {
+    margin: 4px 0 0;
+    color: var(--admin-muted);
+    font-size: 14px;
+  }
+
+  .quick-links {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .modules-panel {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius);
+    box-shadow: var(--admin-shadow);
+    padding: 22px;
+    margin-bottom: 24px;
+  }
+
+  .module-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .module-card {
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid var(--admin-border);
+    background: var(--admin-surface-2);
+    color: var(--admin-text);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+  }
+
+  .module-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(17, 109, 255, 0.35);
+    box-shadow: 0 14px 28px rgba(17, 109, 255, 0.08);
+  }
+
+  .module-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .module-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .module-badge.primary { background: linear-gradient(135deg, #116dff, #0b4fc4); }
+  .module-badge.success { background: linear-gradient(135deg, #10b981, #059669); }
+  .module-badge.dark { background: linear-gradient(135deg, #0f172a, #334155); }
+  .module-badge.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+  .module-card strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 15px;
+  }
+
+  .module-card span.desc {
+    color: var(--admin-muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .quick-link {
+    min-height: 106px;
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid var(--admin-border);
+    background: var(--admin-surface-2);
+    color: var(--admin-text);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .quick-link:hover {
+    transform: translateY(-2px);
+    border-color: rgba(17, 109, 255, 0.35);
+    box-shadow: 0 14px 28px rgba(17, 109, 255, 0.08);
+  }
+
+  .quick-link .icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: linear-gradient(135deg, #116dff, #0b4fc4);
+  }
+
+  .quick-link strong {
+    font-size: 15px;
+    margin-top: 12px;
+  }
+
+  .quick-link span:last-child {
+    font-size: 13px;
+    color: var(--admin-muted);
+    margin-top: 6px;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .card-panel {
+    padding: 22px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 18px;
+    color: var(--admin-text);
+  }
+
+  .card-link {
+    color: var(--admin-primary);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .card-link:hover {
+    text-decoration: underline;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--admin-border);
+    border-radius: 18px;
+  }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+  }
+
+  .admin-table thead th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--admin-muted);
+    padding: 16px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--admin-border);
+  }
+
+  .admin-table tbody td {
+    padding: 16px 18px;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+    color: var(--admin-text);
+  }
+
+  .admin-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .admin-table tbody tr:hover {
+    background: #f9fbff;
+  }
+
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    background: linear-gradient(135deg, #116dff, #22c55e);
+    flex: 0 0 auto;
+  }
+
+  .user-meta strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .user-meta span {
+    color: var(--admin-muted);
+    font-size: 13px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .badge-estudiante { background: #dbeafe; color: #1d4ed8; }
+  .badge-profesor { background: #dcfce7; color: #15803d; }
+  .badge-admin { background: #ede9fe; color: #7c3aed; }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.inactive {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .side-stack {
+    display: grid;
+    gap: 18px;
+  }
+
+  .role-list,
+  .health-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .role-item,
+  .health-item {
+    display: grid;
+    gap: 8px;
+  }
+
+  .role-row,
+  .health-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+  }
+
+  .role-name,
+  .health-name {
+    color: var(--admin-text);
+    font-weight: 600;
+  }
+
+  .role-count,
+  .health-value {
+    color: var(--admin-muted);
+    font-weight: 700;
+  }
+
+  .bar-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #116dff, #22c55e);
+  }
+
+  .bar-fill.teachers {
+    background: linear-gradient(90deg, #0f172a, #334155);
+  }
+
+  .bar-fill.admins {
+    background: linear-gradient(90deg, #7c3aed, #c084fc);
+  }
+
+  .health-meter {
+    display: grid;
+    gap: 6px;
+  }
+
+  .health-note {
+    color: var(--admin-muted);
+    font-size: 13px;
+    line-height: 1.45;
+    margin-top: 8px;
+  }
+
+  .footer-note {
+    margin-top: 18px;
+    color: var(--admin-muted);
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .empty-state {
+    padding: 36px 18px;
+    text-align: center;
+    color: var(--admin-muted);
+  }
+
+  .empty-state .material-symbols-rounded {
+    font-size: 44px;
+    color: #cbd5e1;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 1180px) {
+    .metrics-grid,
+    .quick-links {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .module-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .admin-shell {
+      padding: 16px;
+    }
+
+    .hero-panel,
+    .card-panel,
+    .quick-panel,
+    .metric-card {
+      border-radius: 16px;
+    }
+
+    .metrics-grid,
+    .quick-links {
+      grid-template-columns: 1fr;
+    }
+
+    .module-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="admin-shell">
+  <div class="admin-content">
+    <section class="hero-panel">
+      <div class="hero-top">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="material-symbols-rounded" style="font-size: 16px;">shield</span>
+            Panel de administración
+          </div>
+          <h1 class="hero-title">Controla usuarios, accesos y estado general desde un solo lugar</h1>
+          <p class="hero-subtitle">Resumen centralizado del sistema IFCES, inspirado en dashboards tipo hub: métricas claras, accesos rápidos y actividad reciente sin ruido visual.</p>
+        </div>
+
+        <div class="hero-actions">
+          <div class="glass-chip">
+            <span class="material-symbols-rounded">schedule</span>
+            <span id="current-time">--:--</span>
+          </div>
+          <a href="{{ url_for('main.usuarios') }}" class="btn-admin primary">
+            <span class="material-symbols-rounded">group</span>
+            Gestionar usuarios
+          </a>
+          <a href="{{ url_for('main.index') }}" class="btn-admin secondary">
+            <span class="material-symbols-rounded">home</span>
+            Ir al inicio
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <div class="metric-top">
+          <div>
+            <p class="metric-label">Total de usuarios</p>
+            <div class="metric-value">{{ total_users }}</div>
+            <div class="metric-trend up"><span class="material-symbols-rounded" style="font-size: 16px;">trending_up</span> Base operativa</div>
+          </div>
+          <div class="metric-icon primary"><span class="material-symbols-rounded">people</span></div>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-top">
+          <div>
+            <p class="metric-label">Usuarios activos</p>
+            <div class="metric-value">{{ active_users }}</div>
+            <div class="metric-trend up"><span class="material-symbols-rounded" style="font-size: 16px;">check_circle</span> Sesiones habilitadas</div>
+          </div>
+          <div class="metric-icon success"><span class="material-symbols-rounded">verified_user</span></div>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-top">
+          <div>
+            <p class="metric-label">Docentes</p>
+            <div class="metric-value">{{ teachers }}</div>
+            <div class="metric-trend neutral"><span class="material-symbols-rounded" style="font-size: 16px;">school</span> Rol académico</div>
+          </div>
+          <div class="metric-icon warning"><span class="material-symbols-rounded">menu_book</span></div>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-top">
+          <div>
+            <p class="metric-label">Administradores</p>
+            <div class="metric-value">{{ admins }}</div>
+            <div class="metric-trend neutral"><span class="material-symbols-rounded" style="font-size: 16px;">security</span> Control del sistema</div>
+          </div>
+          <div class="metric-icon dark"><span class="material-symbols-rounded">admin_panel_settings</span></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="modules-panel">
+      <div class="section-head">
+        <div>
+          <h2>Módulos del sistema</h2>
+          <p>Accesos rápidos a las áreas disponibles para administradores.</p>
+        </div>
+      </div>
+
+      <div class="module-grid">
+        <a href="{{ url_for('main.usuarios') }}" class="module-card">
+          <div class="module-top">
+            <div>
+              <div class="module-badge primary"><span class="material-symbols-rounded">manage_accounts</span></div>
+              <strong>Usuarios</strong>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--admin-muted);">arrow_forward</span>
+          </div>
+          <span class="desc">Revisar, buscar y supervisar cuentas registradas.</span>
+        </a>
+
+        <a href="{{ url_for('main.index') }}" class="module-card">
+          <div class="module-top">
+            <div>
+              <div class="module-badge success"><span class="material-symbols-rounded">home</span></div>
+              <strong>Inicio</strong>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--admin-muted);">arrow_forward</span>
+          </div>
+          <span class="desc">Volver a la portada general del sistema IFCES.</span>
+        </a>
+
+        <a href="{{ url_for('auth.logout') }}" class="module-card">
+          <div class="module-top">
+            <div>
+              <div class="module-badge danger"><span class="material-symbols-rounded">logout</span></div>
+              <strong>Salir</strong>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--admin-muted);">arrow_forward</span>
+          </div>
+          <span class="desc">Cerrar la sesión actual de forma segura.</span>
+        </a>
+
+        <div class="module-card" style="cursor: default;">
+          <div class="module-top">
+            <div>
+              <div class="module-badge dark"><span class="material-symbols-rounded">analytics</span></div>
+              <strong>Estado</strong>
+            </div>
+            <span class="material-symbols-rounded" style="color: var(--admin-muted);">check_circle</span>
+          </div>
+          <span class="desc">Panel activo con datos locales y vista optimizada.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="quick-panel">
+      <div class="section-head">
+        <div>
+          <h2>Acciones rápidas</h2>
+          <p>Atajos directos a las partes más usadas del panel.</p>
+        </div>
+      </div>
+
+      <div class="quick-links">
+        <a href="{{ url_for('main.usuarios') }}" class="quick-link">
+          <span class="icon"><span class="material-symbols-rounded">manage_accounts</span></span>
+          <strong>Usuarios</strong>
+          <span>Ver, revisar y administrar accesos.</span>
+        </a>
+        <a href="{{ url_for('main.index') }}" class="quick-link">
+          <span class="icon"><span class="material-symbols-rounded">dashboard</span></span>
+          <strong>Inicio</strong>
+          <span>Volver a la portada general del sistema.</span>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="quick-link">
+          <span class="icon"><span class="material-symbols-rounded">logout</span></span>
+          <strong>Salir</strong>
+          <span>Cerrar la sesión actual de forma segura.</span>
+        </a>
+        <div class="quick-link" style="cursor: default;">
+          <span class="icon"><span class="material-symbols-rounded">analytics</span></span>
+          <strong>Estado</strong>
+          <span>Panel estable con datos cargados desde la base local.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="card-panel">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title"><span class="material-symbols-rounded">history</span> Usuarios recientes</h3>
+            <p style="margin: 6px 0 0; color: var(--admin-muted); font-size: 14px;">Últimos registros visibles en el sistema.</p>
+          </div>
+          <a href="{{ url_for('main.usuarios') }}" class="card-link">Ver todos</a>
+        </div>
+
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Registro</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in recent_users %}
+                <tr>
+                  <td>
+                    <div class="user-cell">
+                      <div class="user-avatar">{{ (u.username[:1] or 'U')|upper }}</div>
+                      <div class="user-meta">
+                        <strong>{{ u.username }}</strong>
+                        <span>ID {{ u.id }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ u.email }}</td>
+                  <td>
+                    <span class="badge badge-{{ u.role }}">
+                      {% if u.role == 'estudiante' %}Estudiante{% elif u.role == 'profesor' %}Docente{% else %}Administrador{% endif %}
+                    </span>
+                  </td>
+                  <td>{{ u.created_at.strftime('%d/%m/%Y') if u.created_at else 'Sin fecha' }}</td>
+                  <td>
+                    <span class="status-badge {% if u.is_active %}active{% else %}inactive{% endif %}">
+                      {% if u.is_active %}
+                        <span class="material-symbols-rounded" style="font-size: 16px;">check_circle</span> Activo
+                      {% else %}
+                        <span class="material-symbols-rounded" style="font-size: 16px;">cancel</span> Inactivo
+                      {% endif %}
+                    </span>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <span class="material-symbols-rounded">inbox</span>
+                      <p>No hay usuarios registrados todavía.</p>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <div class="side-stack">
+        <article class="card-panel">
+          <div class="card-header">
+            <h3 class="card-title"><span class="material-symbols-rounded">pie_chart</span> Distribución por rol</h3>
+          </div>
+
+          <div class="role-list">
+            <div class="role-item">
+              <div class="role-row">
+                <span class="role-name">Estudiantes</span>
+                <span class="role-count">{{ students }}</span>
+              </div>
+              <div class="bar-track"><div class="bar-fill" style="width: {{ student_pct }}%;"></div></div>
+            </div>
+
+            <div class="role-item">
+              <div class="role-row">
+                <span class="role-name">Docentes</span>
+                <span class="role-count">{{ teachers }}</span>
+              </div>
+              <div class="bar-track"><div class="bar-fill teachers" style="width: {{ teacher_pct }}%;"></div></div>
+            </div>
+
+            <div class="role-item">
+              <div class="role-row">
+                <span class="role-name">Administradores</span>
+                <span class="role-count">{{ admins }}</span>
+              </div>
+              <div class="bar-track"><div class="bar-fill admins" style="width: {{ admin_pct }}%;"></div></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card-panel">
+          <div class="card-header">
+            <h3 class="card-title"><span class="material-symbols-rounded">health_and_safety</span> Salud del entorno</h3>
+          </div>
+
+          <div class="health-list">
+            <div class="health-item">
+              <div class="health-row"><span class="health-name">Base de datos</span><span class="health-value">SQLite local</span></div>
+              <div class="health-meter"><div class="bar-track"><div class="bar-fill" style="width: 100%;"></div></div></div>
+            </div>
+
+            <div class="health-item">
+              <div class="health-row"><span class="health-name">Autenticación</span><span class="health-value">Operativa</span></div>
+              <div class="health-meter"><div class="bar-track"><div class="bar-fill" style="width: 96%;"></div></div></div>
+            </div>
+
+            <div class="health-item">
+              <div class="health-row"><span class="health-name">Acceso admin</span><span class="health-value">Protegido</span></div>
+              <div class="health-meter"><div class="bar-track"><div class="bar-fill" style="width: 92%;"></div></div></div>
+            </div>
+          </div>
+
+          <p class="health-note">El panel está preparado para trabajar en local con SQLite mientras MySQL no esté disponible. Si levantas MySQL, la app puede volver a usar la configuración del `.env`.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="footer-note">Última carga del panel: <span id="update-time">hace unos momentos</span></div>
+  </div>
 </div>
 
-<div class="dashboard-stats">
-  <div class="stat-card">
-    <div class="stat-value">{{ usuarios|length }}</div>
-    <div class="stat-label">Total Usuarios</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">{{ usuarios|selectattr('role', 'equalto', 'estudiante')|list|length }}</div>
-    <div class="stat-label">Estudiantes</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">{{ usuarios|selectattr('role', 'equalto', 'profesor')|list|length }}</div>
-    <div class="stat-label">Profesores</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">{{ usuarios|selectattr('role', 'equalto', 'admin')|list|length }}</div>
-    <div class="stat-label">Administradores</div>
-  </div>
-</div>
+<script>
+  function updateTime() {
+    const now = new Date();
+    const timeTarget = document.getElementById('current-time');
+    if (timeTarget) {
+      timeTarget.textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    }
+  }
 
-<div class="dashboard-grid">
-  <div class="dashboard-card full-width">
-    <h3>👥 Todos los Usuarios</h3>
-    <div class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Usuario</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Registrado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for u in usuarios %}
-            <tr>
-              <td>{{ u.id }}</td>
-              <td>{{ u.username }}</td>
-              <td>{{ u.email }}</td>
-              <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
-              <td>{{ u.created_at.strftime('%d/%m/%Y %H:%M') if u.created_at else 'N/A' }}</td>
-            </tr>
-          {% else %}
-            <tr><td colspan="5" class="no-data">No hay usuarios registrados</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+  updateTime();
+  setInterval(updateTime, 60000);
+</script>
 {% endblock %}
