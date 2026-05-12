@@ -1,0 +1,21 @@
+databases:
+  - name: sammor96-db
+    plan: free
+    databaseName: sammor96_sammor96_
+    user: sammor96_user
+
+services:
+  - type: web
+    name: aplicativo-ifces
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sammor96-db
+          property: connectionString
