@@ -499,6 +499,43 @@ def dashboard_admin():
     return render_template("dashboard_admin.html", usuarios=usuarios)
 
 
+@main_bp.route("/modulos")
+@login_required
+@role_required("admin")
+def modulos():
+    modules = [
+        {
+            "icon": "dashboard",
+            "title": "Panel Admin",
+            "desc": "Hub principal para controlar métricas y actividad.",
+            "url": url_for("main.dashboard_admin"),
+            "tone": "primary",
+        },
+        {
+            "icon": "group",
+            "title": "Usuarios",
+            "desc": "Listado y búsqueda de cuentas registradas.",
+            "url": url_for("main.usuarios"),
+            "tone": "success",
+        },
+        {
+            "icon": "home",
+            "title": "Inicio",
+            "desc": "Portada general del sistema IFCES.",
+            "url": url_for("main.index"),
+            "tone": "dark",
+        },
+        {
+            "icon": "logout",
+            "title": "Salir",
+            "desc": "Cerrar sesión actual de forma segura.",
+            "url": url_for("auth.logout"),
+            "tone": "danger",
+        },
+    ]
+    return render_template("modulos.html", modules=modules)
+
+
 @main_bp.route("/usuarios")
 @login_required
 @role_required("admin", "profesor")

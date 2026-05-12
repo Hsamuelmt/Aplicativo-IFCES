@@ -1,0 +1,231 @@
+{% extends 'layout.html' %}
+{% block title %}Módulos del sistema{% endblock %}
+{% block content %}
+<style>
+  :root {
+    --modules-bg: #f5f7fb;
+    --modules-surface: #ffffff;
+    --modules-surface-2: #f8fafc;
+    --modules-border: #dbe4f0;
+    --modules-text: #0f172a;
+    --modules-muted: #64748b;
+    --modules-radius: 20px;
+    --modules-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  .modules-shell {
+    position: relative;
+    overflow: hidden;
+    padding: 28px;
+    background:
+      radial-gradient(circle at top left, rgba(17, 109, 255, 0.10), transparent 30%),
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.10), transparent 24%),
+      var(--modules-bg);
+    min-height: calc(100vh - 96px);
+  }
+
+  .modules-content {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .hero,
+  .modules-panel {
+    background: var(--modules-surface);
+    border: 1px solid var(--modules-border);
+    border-radius: var(--modules-radius);
+    box-shadow: var(--modules-shadow);
+  }
+
+  .hero {
+    padding: 28px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, rgba(17, 109, 255, 0.95), rgba(17, 109, 255, 0.72));
+    color: white;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-size: clamp(28px, 4vw, 42px);
+    letter-spacing: -0.04em;
+  }
+
+  .hero p {
+    margin: 12px 0 0;
+    max-width: 68ch;
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  .modules-panel {
+    padding: 22px;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .section-head h2 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--modules-text);
+  }
+
+  .section-head p {
+    margin: 4px 0 0;
+    color: var(--modules-muted);
+    font-size: 14px;
+  }
+
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .module-card {
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--modules-border);
+    background: var(--modules-surface-2);
+    color: var(--modules-text);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .module-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(17, 109, 255, 0.35);
+    box-shadow: 0 14px 28px rgba(17, 109, 255, 0.08);
+  }
+
+  .module-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .module-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .module-badge.primary { background: linear-gradient(135deg, #116dff, #0b4fc4); }
+  .module-badge.success { background: linear-gradient(135deg, #10b981, #059669); }
+  .module-badge.dark { background: linear-gradient(135deg, #0f172a, #334155); }
+  .module-badge.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+  .module-card strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 15px;
+  }
+
+  .module-card span.desc {
+    color: var(--modules-muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .quick-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  .quick-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--modules-border);
+    background: white;
+    color: var(--modules-text);
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  @media (max-width: 720px) {
+    .modules-shell {
+      padding: 16px;
+    }
+
+    .modules-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="modules-shell">
+  <div class="modules-content">
+    <section class="hero">
+      <div class="eyebrow">
+        <span class="material-symbols-rounded" style="font-size:16px;">apps</span>
+        Módulos del sistema
+      </div>
+      <h1>Centro de accesos y navegación rápida</h1>
+      <p>Esta página agrupa las entradas principales del entorno administrativo para moverte sin depender del menú superior.</p>
+    </section>
+
+    <section class="modules-panel">
+      <div class="section-head">
+        <div>
+          <h2>Accesos disponibles</h2>
+          <p>Usa estos módulos como punto de partida para la gestión diaria.</p>
+        </div>
+      </div>
+
+      <div class="modules-grid">
+        {% for module in modules %}
+          <a href="{{ module.url }}" class="module-card">
+            <div class="module-top">
+              <div>
+                <div class="module-badge {{ module.tone }}"><span class="material-symbols-rounded">{{ module.icon }}</span></div>
+                <strong>{{ module.title }}</strong>
+              </div>
+              <span class="material-symbols-rounded" style="color: var(--modules-muted);">arrow_forward</span>
+            </div>
+            <span class="desc">{{ module.desc }}</span>
+          </a>
+        {% endfor %}
+      </div>
+
+      <div class="quick-links">
+        <a href="{{ url_for('main.dashboard_admin') }}"><span class="material-symbols-rounded">dashboard</span> Panel Admin</a>
+        <a href="{{ url_for('main.usuarios') }}"><span class="material-symbols-rounded">group</span> Usuarios</a>
+        <a href="{{ url_for('main.index') }}"><span class="material-symbols-rounded">home</span> Inicio</a>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

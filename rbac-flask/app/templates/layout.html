@@ -26,6 +26,7 @@
           <li><a href="{{ url_for('profesor.lista_examenes') }}">Exámenes</a></li>
         {% elif current_user.role == 'admin' %}
           <li><a href="{{ url_for('main.dashboard_admin') }}">Panel Admin</a></li>
+          <li><a href="{{ url_for('main.modulos') }}">Módulos</a></li>
           <li><a href="{{ url_for('main.usuarios') }}">Usuarios</a></li>
         {% endif %}
         <li><a href="{{ url_for('auth.logout') }}">Salir</a></li>
