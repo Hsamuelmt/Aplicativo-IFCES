@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block title %}Materiales Compartidos{% endblock %}
+
+{% block content %}
+<h2>Materiales de apoyo</h2>
+{% if current_user.is_profesor %}
+  <p><a class="btn" href="{{ url_for('compartir.subir_material') }}">Subir nuevo material</a></p>
+{% endif %}
+
+<ul class="materials-list">
+  {% for m in materiales %}
+    <li>
+      <strong>{{ m.titulo }}</strong> — por {{ m.uploader.username if m.uploader else 'Desconocido' }} <br/>
+      {% if m.descripcion %}<small>{{ m.descripcion }}</small><br/>{% endif %}
+      {% if m.examen %}<div>Asignado a: <strong>{{ m.examen.titulo }}</strong></div>{% endif %}
+      {% if m.archivo %}
+        <a href="{{ url_for('compartir.descargar_archivo', filename=m.archivo) }}">Descargar archivo</a>
+      {% endif %}
+      {% if m.enlace_externo %}
+        <a href="{{ m.enlace_externo }}" target="_blank">Abrir enlace</a>
+      {% endif %}
+      <span class="muted"> — {{ m.created_at.strftime('%Y-%m-%d') }}</span>
+    </li>
+  {% else %}
+    <li>No hay materiales disponibles.</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

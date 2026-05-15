@@ -208,3 +208,45 @@ class Certificado(db.Model):
 @login_manager.user_loader
 def load_user(user_id):  # pragma: no cover
     return User.query.get(int(user_id))
+
+
+# -------------------------
+# Materiales y Mensajería
+# -------------------------
+
+
+class Material(db.Model):
+    __tablename__ = "materiales"
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text)
+    archivo = db.Column(db.String(255))  # nombre de archivo en instance/uploads
+    enlace_externo = db.Column(db.String(255))  # opcional (Meet, Teams, Drive link)
+    publico = db.Column(db.Boolean, default=True)
+    uploader_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    examen_id = db.Column(db.Integer, db.ForeignKey('examenes.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    uploader = db.relationship('User', backref='materiales_subidos')
+    examen = db.relationship('Examen', backref='materiales')
+
+    def __repr__(self):
+        return f'<Material {self.titulo}>'
+
+
+class Mensaje(db.Model):
+    __tablename__ = "mensajes"
+    id = db.Column(db.Integer, primary_key=True)
+    remitente_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    destinatario_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # null = broadcast
+    asunto = db.Column(db.String(200))
+    cuerpo = db.Column(db.Text)
+    enlace = db.Column(db.String(255))  # link relacionado (Meet, Teams, Drive)
+    leido = db.Column(db.Boolean, default=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    remitente = db.relationship('User', foreign_keys=[remitente_id], backref='mensajes_enviados')
+    destinatario = db.relationship('User', foreign_keys=[destinatario_id], backref='mensajes_recibidos')
+
+    def __repr__(self):
+        return f'<Mensaje {self.id} {self.asunto}>'

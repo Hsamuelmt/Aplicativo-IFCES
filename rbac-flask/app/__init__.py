@@ -42,10 +42,12 @@ def create_app(config_object="config.Config"):
     from .auth.routes import auth_bp
     from .main.routes import main_bp
     from .profesor import profesor_bp
+    from .shared import shared_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(profesor_bp)
+    app.register_blueprint(shared_bp)
 
     # create tables on first request
     @app.before_request

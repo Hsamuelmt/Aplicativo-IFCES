@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block title %}Subir Material{% endblock %}
+
+{% block content %}
+<h2>Subir material de apoyo</h2>
+<form method="post" enctype="multipart/form-data">
+  <label>Título</label>
+  <input name="titulo" class="input" />
+
+  <label>Descripción</label>
+  <textarea name="descripcion" class="input"></textarea>
+
+  <label>Archivo (opcional)</label>
+  <input type="file" name="archivo" />
+
+  <label>Enlace externo (Meet/Teams/Drive)</label>
+  <input name="enlace" class="input" />
+
+  <label>Asignar a examen (opcional)</label>
+  <select name="examen_id">
+    <option value="">-- Ninguno --</option>
+    {% for ex in examenes %}
+      <option value="{{ ex.id }}">{{ ex.titulo }}</option>
+    {% endfor %}
+  </select>
+
+  <label><input type="checkbox" name="publico" checked /> Público (visible para estudiantes si no está asignado)</label>
+
+  <button class="btn" type="submit">Subir</button>
+</form>
+
+{% endblock %}

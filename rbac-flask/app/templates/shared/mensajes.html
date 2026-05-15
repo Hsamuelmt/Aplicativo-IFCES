@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block title %}Mensajes{% endblock %}
+
+{% block content %}
+<h2>Mensajes</h2>
+{% if current_user.is_profesor %}
+  <p><a class="btn" href="{{ url_for('compartir.enviar_mensaje') }}">Enviar mensaje</a></p>
+{% endif %}
+
+<ul class="messages-list">
+  {% for msg in mensajes %}
+    <li>
+      <strong>{{ msg.asunto or '(Sin asunto)' }}</strong> — de {{ msg.remitente.username if msg.remitente else 'Desconocido' }}
+      {% if msg.destinatario %} a {{ msg.destinatario.username }}{% else %} (Broadcast){% endif %}
+      <div>{{ msg.cuerpo }}</div>
+      {% if msg.enlace %}<a href="{{ msg.enlace }}" target="_blank">Abrir enlace</a>{% endif %}
+      <small class="muted">{{ msg.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</small>
+    </li>
+  {% else %}
+    <li>No hay mensajes.</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

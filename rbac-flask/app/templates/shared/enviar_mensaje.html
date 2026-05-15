@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block title %}Enviar Mensaje{% endblock %}
+
+{% block content %}
+<h2>Enviar mensaje a estudiantes</h2>
+<form method="post">
+  <label>Destinatario</label>
+  <select name="destinatario">
+    <option value="broadcast">Todos (Broadcast)</option>
+    {% for u in usuarios %}
+      <option value="{{ u.id }}">{{ u.username }} ({{ u.email }})</option>
+    {% endfor %}
+  </select>
+
+  <label>Asunto</label>
+  <input name="asunto" class="input" />
+
+  <label>Mensaje</label>
+  <textarea name="cuerpo" class="input"></textarea>
+
+  <label>Enlace (opcional)</label>
+  <input name="enlace" class="input" />
+
+  <button class="btn" type="submit">Enviar</button>
+</form>
+
+{% endblock %}
