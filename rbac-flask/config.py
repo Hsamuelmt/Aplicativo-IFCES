@@ -33,6 +33,10 @@ class Config:
     # Set the final database URI
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or mysql_url or sqlite_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Uploads
+    INSTANCE_PATH = BASE_DIR / "instance"
+    UPLOAD_FOLDER = INSTANCE_PATH / "uploads"
+    MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20 MB max upload size
 
 class TestConfig(Config):
     TESTING = True

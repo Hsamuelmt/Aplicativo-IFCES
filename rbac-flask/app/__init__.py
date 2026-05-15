@@ -53,6 +53,15 @@ def create_app(config_object="config.Config"):
     @app.before_request
     def _create_tables():  # pragma: no cover
         db.create_all()
+        # Ensure instance uploads directory exists
+        try:
+            upload_folder = app.config.get('UPLOAD_FOLDER')
+            if upload_folder:
+                from pathlib import Path
+                p = Path(upload_folder)
+                p.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
 
     # error handlers
     @app.errorhandler(403)
