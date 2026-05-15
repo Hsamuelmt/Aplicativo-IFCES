@@ -440,10 +440,31 @@ def estudiante_enviar_examen(examen_id):
         # Verificar si es correcta
         es_correcta = False
         if pregunta.tipo == 'opcion_multiple':
-            opciones = json.loads(pregunta.opciones)
-            respuesta_correcta = next(
-                (opt['texto'] for opt in opciones if opt['correcta']), None)
-            es_correcta = respuesta_estudiante == respuesta_correcta
+            try:
+                opciones = json.loads(pregunta.opciones)
+            except Exception:
+                opciones = []
+
+            # opciones may be a list of strings or a list of dicts.
+            respuesta_correcta = None
+            if isinstance(opciones, list) and opciones:
+                first = opciones[0]
+                if isinstance(first, dict):
+                    # find option with 'correcta'==True or 'correct' key
+                    for opt in opciones:
+                        if opt.get('correcta') or opt.get('correct'):
+                            respuesta_correcta = opt.get('texto') or opt.get('value')
+                            break
+                    # fallback to pregunta.respuesta_correcta
+                    if respuesta_correcta is None:
+                        respuesta_correcta = pregunta.respuesta_correcta
+                else:
+                    # list of strings
+                    respuesta_correcta = pregunta.respuesta_correcta
+            else:
+                respuesta_correcta = pregunta.respuesta_correcta
+
+            es_correcta = (respuesta_estudiante == respuesta_correcta)
         elif pregunta.tipo == 'verdadero_falso':
             es_correcta = respuesta_estudiante == pregunta.respuesta_correcta
         
@@ -749,10 +770,27 @@ def estudiante_enviar_practica(examen_id):
         respuesta_correcta = ""
         
         if pregunta.tipo == 'opcion_multiple':
-            opciones = json.loads(pregunta.opciones)
-            respuesta_correcta = next(
-                (opt['texto'] for opt in opciones if opt['correcta']), None)
-            es_correcta = respuesta_estudiante == respuesta_correcta
+            try:
+                opciones = json.loads(pregunta.opciones)
+            except Exception:
+                opciones = []
+
+            respuesta_correcta = None
+            if isinstance(opciones, list) and opciones:
+                first = opciones[0]
+                if isinstance(first, dict):
+                    for opt in opciones:
+                        if opt.get('correcta') or opt.get('correct'):
+                            respuesta_correcta = opt.get('texto') or opt.get('value')
+                            break
+                    if respuesta_correcta is None:
+                        respuesta_correcta = pregunta.respuesta_correcta
+                else:
+                    respuesta_correcta = pregunta.respuesta_correcta
+            else:
+                respuesta_correcta = pregunta.respuesta_correcta
+
+            es_correcta = (respuesta_estudiante == respuesta_correcta)
         elif pregunta.tipo == 'verdadero_falso':
             respuesta_correcta = pregunta.respuesta_correcta
             es_correcta = respuesta_estudiante == respuesta_correcta
