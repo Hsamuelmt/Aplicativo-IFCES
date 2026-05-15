@@ -1,0 +1,15 @@
+﻿Total usuarios: 13
+
+  6 | admin                | admin@example.com              | admin      | active=True
+  9 | estudiante1          | estudiante1@mail.com           | estudiante | active=True
+ 10 | estudiante2          | estudiante2@mail.com           | estudiante | active=True
+ 11 | estudiante3          | estudiante3@mail.com           | estudiante | active=True
+ 12 | estudiante4          | estudiante4@mail.com           | estudiante | active=True
+ 13 | estudiante5          | estudiante5@mail.com           | estudiante | active=True
+  3 | felipe               | estudiante25@gmail.com         | estudiante | active=True
+  4 | juliansito           | julian@gmail.com               | estudiante | active=True
+  1 | smoreno              | guest1234@gmail.com            | estudiante | active=True
+  7 | prof_jose            | jose@ifces.edu                 | profesor   | active=True
+  8 | prof_maria           | maria@ifces.edu                | profesor   | active=True
+  2 | profesor             | guestprofesor@gmail.com        | profesor   | active=True
+  5 | profesor carlos      | profesor@gmail.com             | profesor   | active=True
